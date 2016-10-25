@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">IndoorTracker</string>
+    <string name="create_new_map">Create new map</string>
+    <string name="mapping">Mapping</string>
+    <string name="enter_map_size">Enter map size</string>
+    <string name="enter_width_in_meters">Enter width in meters</string>
+    <string name="enter_height_in_meters">Enter height in meters</string>
+    <string name="create">Create</string>
 </resources>
