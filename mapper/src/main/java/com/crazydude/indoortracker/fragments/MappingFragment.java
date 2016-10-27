@@ -10,12 +10,16 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.crazydude.indoortracker.R;
+import com.crazydude.indoortracker.views.MapperView;
 
 /**
  * Created by Crazy on 25.10.2016.
  */
 
 public class MappingFragment extends Fragment {
+
+    private MapperView mMapperView;
+    private Integer mMapWidth, mMapHeight;
 
     public static MappingFragment newInstance() {
         return new MappingFragment();
@@ -33,15 +37,23 @@ public class MappingFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_mapping, container, false);
 
+        mMapperView = (MapperView) view.findViewById(R.id.mapper_view);
+
         if (savedInstanceState == null) {
             firstLaunchInit();
+        } else {
+            restoreMap();
         }
 
         return view;
     }
 
+    private void restoreMap() {
+        mMapperView.createMap(mMapWidth, mMapHeight);
+    }
+
     private void firstLaunchInit() {
-//        showMapSizeDialog();
+        showMapSizeDialog();
     }
 
     private void showMapSizeDialog() {
@@ -65,6 +77,8 @@ public class MappingFragment extends Fragment {
     }
 
     private void createNewMap(int width, int height) {
-
+        mMapWidth = width;
+        mMapHeight = height;
+        mMapperView.createMap(width, height);
     }
 }
