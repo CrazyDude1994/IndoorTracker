@@ -6,6 +6,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -21,6 +22,7 @@ public class MapperView extends View {
     private Matrix mCameraMatrix;
     private Paint mDrawPaint;
     private int mMapWidth, mMapHeight;
+    private float mLongestWall;
 
     public MapperView(Context context) {
         super(context);
@@ -46,25 +48,59 @@ public class MapperView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (mMapWidth == 0 || mMapHeight == 0) return;
+
+        int fullSize = (canvas.getHeight() >= canvas.getWidth()) ? canvas.getWidth() : canvas.getHeight();
+
         canvas.setMatrix(mCameraMatrix);
-        drawWalls(canvas);
+        drawGrid(canvas, fullSize);
+        drawWalls(canvas, fullSize);
     }
 
-    private void drawWalls(Canvas canvas) {
+    private void drawGrid(Canvas canvas, int fullSize) {
+        mDrawPaint.setARGB(255, 174, 234, 255);
+        mDrawPaint.setStrokeWidth(4);
+        float pixelsPerMeter = fullSize / mLongestWall;
+
+        for (int i = 0; i < mMapHeight; i++) {
+            canvas.drawLine(0, i * pixelsPerMeter, fullSize, i * pixelsPerMeter, mDrawPaint);
+        }
+
+        for (int i = 0; i < mMapWidth; i++) {
+            canvas.drawLine(i * pixelsPerMeter, 0, i * pixelsPerMeter, fullSize, mDrawPaint);
+        }
+    }
+
+    private void drawWalls(Canvas canvas, int fullSize) {
         mDrawPaint.setARGB(255, 0, 0, 0);
         mDrawPaint.setStrokeWidth(16);
-        int fullSize = (canvas.getHeight() > canvas.getWidth()) ? canvas.getWidth() : canvas.getHeight();
-        float longestWall = (mMapHeight > mMapWidth) ? mMapHeight : mMapWidth;
 
-        float koefWallWidth = mMapWidth / longestWall;
-        float koefWallHeight = mMapHeight / longestWall;
+        float koefWallWidth = mMapWidth / mLongestWall;
+        float koefWallHeight = mMapHeight / mLongestWall;
 
-        canvas.drawLine(0, 0, koefWallWidth * fullSize, 0, mDrawPaint); //top wall
-        canvas.drawLine(koefWallWidth * fullSize, 0, koefWallWidth * fullSize,
-                koefWallHeight * fullSize, mDrawPaint); //right wall
-        canvas.drawLine(koefWallWidth * fullSize, koefWallHeight * fullSize, 0,
-                koefWallHeight * fullSize, mDrawPaint); //bottom wall
-        canvas.drawLine(0, koefWallHeight * fullSize, 0, 0, mDrawPaint); //left wall
+        canvas.drawLine(
+                0,
+                0,
+                koefWallWidth * fullSize,
+                0,
+                mDrawPaint); //top wall
+        canvas.drawLine(
+                koefWallWidth * fullSize,
+                0,
+                koefWallWidth * fullSize,
+                koefWallHeight * fullSize,
+                mDrawPaint); //right wall
+        canvas.drawLine(
+                koefWallWidth * fullSize,
+                koefWallHeight * fullSize,
+                0,
+                koefWallHeight * fullSize,
+                mDrawPaint); //bottom wall
+        canvas.drawLine(
+                0,
+                koefWallHeight * fullSize,
+                0,
+                0,
+                mDrawPaint); //left wall
     }
 
     private void init() {
@@ -88,9 +124,15 @@ public class MapperView extends View {
     public void createMap(int width, int height) {
         mMapWidth = width;
         mMapHeight = height;
+        mLongestWall = (mMapHeight >= mMapWidth) ? mMapHeight : mMapWidth;
     }
 
-    private class GestureDetectorListener extends android.view.GestureDetector.SimpleOnGestureListener {
+    private void scaleImage(float scaleFactor, float focusX, float focusY) {
+        mCameraMatrix.postScale(scaleFactor, scaleFactor, focusX, focusY);
+        invalidate();
+    }
+
+    private class GestureDetectorListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
         public boolean onDown(MotionEvent e) {
@@ -105,11 +147,13 @@ public class MapperView extends View {
         }
     }
 
-    private class ScaleGestureDetectorListener extends android.view.ScaleGestureDetector.SimpleOnScaleGestureListener {
+    private class ScaleGestureDetectorListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 
         @Override
         public boolean onScale(android.view.ScaleGestureDetector detector) {
-//            mCameraMatrix.postScale(detector.getCurrentSpanX(), detector.getCurrentSpanY());
+            float scaleFactor = Math.max(0.1f,
+                    Math.min(detector.getScaleFactor(), 5.0f));
+            scaleImage(scaleFactor, detector.getFocusX(), detector.getFocusY());
             return true;
         }
     }
