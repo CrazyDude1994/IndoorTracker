@@ -41,7 +41,7 @@ public class MappingFragment extends Fragment {
     }
 
     private void firstLaunchInit() {
-        showMapSizeDialog();
+//        showMapSizeDialog();
     }
 
     private void showMapSizeDialog() {

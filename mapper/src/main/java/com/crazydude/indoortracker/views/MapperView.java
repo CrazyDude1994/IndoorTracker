@@ -1,10 +1,11 @@
 package com.crazydude.indoortracker.views;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -13,10 +14,12 @@ import android.view.View;
  * Created by Crazy on 25.10.2016.
  */
 
-public class MapperView extends View implements GestureDetector.OnGestureListener, ScaleGestureDetector.OnScaleGestureListener {
+public class MapperView extends View {
 
     private GestureDetectorCompat mGestureDetector;
     private ScaleGestureDetector mScaleGestureDetector;
+    private Matrix mCameraMatrix;
+    private Paint mDrawPaint;
 
     public MapperView(Context context) {
         super(context);
@@ -38,62 +41,52 @@ public class MapperView extends View implements GestureDetector.OnGestureListene
         init();
     }
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.setMatrix(mCameraMatrix);
+        canvas.drawLine(0, 0, 400, 400, mDrawPaint);
+    }
+
     private void init() {
-        mGestureDetector = new GestureDetectorCompat(getContext(), this);
-        mGestureDetector.setIsLongpressEnabled(true);
-        mScaleGestureDetector = new ScaleGestureDetector(getContext(), this);
+        mGestureDetector = new GestureDetectorCompat(getContext(), new GestureDetectorListener());
+        mScaleGestureDetector = new android.view.ScaleGestureDetector(getContext(), new ScaleGestureDetectorListener());
+        mCameraMatrix = new Matrix();
+        mDrawPaint = new Paint();
+        mDrawPaint.setARGB(255, 255, 0, 0);
+        mDrawPaint.setStrokeWidth(25);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mGestureDetector.onTouchEvent(event);
-        mScaleGestureDetector.onTouchEvent(event);
+        if (mGestureDetector.onTouchEvent(event) | mScaleGestureDetector.onTouchEvent(event)) {
+            return true;
+        }
+
         return super.onTouchEvent(event);
     }
 
-    @Override
-    public boolean onDown(MotionEvent motionEvent) {
-        return true;
+    private class GestureDetectorListener extends android.view.GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            mCameraMatrix.postTranslate(-distanceX, -distanceY);
+            MapperView.this.invalidate();
+            return true;
+        }
     }
 
-    @Override
-    public void onShowPress(MotionEvent motionEvent) {
+    private class ScaleGestureDetectorListener extends android.view.ScaleGestureDetector.SimpleOnScaleGestureListener {
 
-    }
-
-    @Override
-    public boolean onSingleTapUp(MotionEvent motionEvent) {
-        return true;
-    }
-
-    @Override
-    public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
-        Log.d("Gesture", "OnScroll");
-        return true;
-    }
-
-    @Override
-    public void onLongPress(MotionEvent motionEvent) {
-
-    }
-
-    @Override
-    public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
-        return true;
-    }
-
-    @Override
-    public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
-        return true;
-    }
-
-    @Override
-    public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector) {
-        return true;
-    }
-
-    @Override
-    public void onScaleEnd(ScaleGestureDetector scaleGestureDetector) {
-
+        @Override
+        public boolean onScale(android.view.ScaleGestureDetector detector) {
+//            mCameraMatrix.postScale(detector.getCurrentSpanX(), detector.getCurrentSpanY());
+            return true;
+        }
     }
 }
