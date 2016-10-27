@@ -11,6 +11,9 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Crazy on 25.10.2016.
  */
@@ -23,6 +26,8 @@ public class MapperView extends View {
     private Paint mDrawPaint;
     private int mMapWidth, mMapHeight;
     private float mLongestWall;
+    private Mode mCurrentMode = Mode.VIEW;
+    private List<WifiPoint> mWifiPoints = new ArrayList<>();
 
     public MapperView(Context context) {
         super(context);
@@ -54,6 +59,16 @@ public class MapperView extends View {
         canvas.setMatrix(mCameraMatrix);
         drawGrid(canvas, fullSize);
         drawWalls(canvas, fullSize);
+        drawWifiPoints(canvas, fullSize);
+    }
+
+    private void drawWifiPoints(Canvas canvas, int fullSize) {
+        mDrawPaint.setARGB(200, 0, 255, 0);
+        mDrawPaint.setStrokeWidth(30);
+        float pixelsPerMeter = fullSize / mLongestWall;
+        for (WifiPoint wifiPoint : mWifiPoints) {
+            canvas.drawCircle(wifiPoint.x, wifiPoint.y, pixelsPerMeter, mDrawPaint);
+        }
     }
 
     private void drawGrid(Canvas canvas, int fullSize) {
@@ -132,6 +147,22 @@ public class MapperView extends View {
         invalidate();
     }
 
+    public void switchMode(Mode mode) {
+        mCurrentMode = mode;
+    }
+
+    private void createMapPoint(float x, float y) {
+        WifiPoint wifiPoint = new WifiPoint();
+        wifiPoint.x = x;
+        wifiPoint.y = y;
+        mWifiPoints.add(wifiPoint);
+        invalidate();
+    }
+
+    public enum Mode {
+        VIEW, MAP
+    }
+
     private class GestureDetectorListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
@@ -144,6 +175,15 @@ public class MapperView extends View {
             mCameraMatrix.postTranslate(-distanceX, -distanceY);
             MapperView.this.invalidate();
             return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            if (mCurrentMode == Mode.MAP) {
+                createMapPoint(e.getX(), e.getY());
+                return true;
+            }
+            return super.onSingleTapUp(e);
         }
     }
 

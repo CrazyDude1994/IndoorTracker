@@ -7,6 +7,7 @@ import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 
 import com.crazydude.indoortracker.R;
@@ -16,9 +17,10 @@ import com.crazydude.indoortracker.views.MapperView;
  * Created by Crazy on 25.10.2016.
  */
 
-public class MappingFragment extends Fragment {
+public class MappingFragment extends Fragment implements View.OnClickListener {
 
     private MapperView mMapperView;
+    private Button mMapPointButton;
     private Integer mMapWidth, mMapHeight;
 
     public static MappingFragment newInstance() {
@@ -38,6 +40,9 @@ public class MappingFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_mapping, container, false);
 
         mMapperView = (MapperView) view.findViewById(R.id.mapper_view);
+        mMapPointButton = (Button) view.findViewById(R.id.map_point_button);
+
+        mMapPointButton.setOnClickListener(this);
 
         if (savedInstanceState == null) {
             firstLaunchInit();
@@ -80,5 +85,18 @@ public class MappingFragment extends Fragment {
         mMapWidth = width;
         mMapHeight = height;
         mMapperView.createMap(width, height);
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.map_point_button:
+                mapPoint();
+                break;
+        }
+    }
+
+    private void mapPoint() {
+        mMapperView.switchMode(MapperView.Mode.MAP);
     }
 }
