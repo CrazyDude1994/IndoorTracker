@@ -28,6 +28,7 @@ public class MapperView extends View {
     private float mLongestWall;
     private Mode mCurrentMode = Mode.VIEW;
     private List<WifiPoint> mWifiPoints = new ArrayList<>();
+    private WifiMapPointListener mWifiMapPointListener;
 
     public enum Mode {
         VIEW, MAP
@@ -67,6 +68,10 @@ public class MapperView extends View {
         mCurrentMode = mode;
     }
 
+    public void setWifiMapPointListener(WifiMapPointListener wifiMapPointListener) {
+        mWifiMapPointListener = wifiMapPointListener;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mGestureDetector.onTouchEvent(event) | mScaleGestureDetector.onTouchEvent(event)) {
@@ -103,12 +108,12 @@ public class MapperView extends View {
         mDrawPaint.setStrokeWidth(4);
         float pixelsPerMeter = fullSize / mLongestWall;
 
-        for (int i = 0; i < mMapHeight; i++) {
-            canvas.drawLine(0, i * pixelsPerMeter, fullSize, i * pixelsPerMeter, mDrawPaint);
+        for (int i = 1; i < mMapHeight; i++) {
+            canvas.drawLine(0, i * pixelsPerMeter, mMapWidth * pixelsPerMeter, i * pixelsPerMeter, mDrawPaint);
         }
 
-        for (int i = 0; i < mMapWidth; i++) {
-            canvas.drawLine(i * pixelsPerMeter, 0, i * pixelsPerMeter, fullSize, mDrawPaint);
+        for (int i = 1; i < mMapWidth; i++) {
+            canvas.drawLine(i * pixelsPerMeter, 0, i * pixelsPerMeter, mMapHeight * pixelsPerMeter, mDrawPaint);
         }
     }
 
@@ -163,6 +168,14 @@ public class MapperView extends View {
         WifiPoint wifiPoint = new WifiPoint(x, y);
         mWifiPoints.add(wifiPoint);
         invalidate();
+        if (mWifiMapPointListener != null) {
+            mWifiMapPointListener.onMapWifi(wifiPoint);
+        }
+    }
+
+    public interface WifiMapPointListener {
+
+        void onMapWifi(WifiPoint wifiPoint);
     }
 
     private class GestureDetectorListener extends GestureDetector.SimpleOnGestureListener {

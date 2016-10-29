@@ -7,4 +7,6 @@
     <string name="enter_height_in_meters">Enter height in meters</string>
     <string name="create">Create</string>
     <string name="map_point">Map point</string>
+    <string name="scanning">Scanning for wifi signals. Please wait</string>
+    <string name="scan_completed">Scan completed</string>
 </resources>
