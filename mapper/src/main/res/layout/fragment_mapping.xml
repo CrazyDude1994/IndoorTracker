@@ -10,9 +10,9 @@
 
     <Button
         android:id="@+id/map_point_button"
-        android:text="@string/map_point"
-        android:layout_gravity="center_horizontal|bottom"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:text="@string/map_point"/>
 
 </FrameLayout>

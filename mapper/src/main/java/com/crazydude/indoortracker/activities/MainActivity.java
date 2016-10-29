@@ -26,10 +26,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         init();
     }
 
-    private void init() {
-        mNavigationView.setNavigationItemSelectedListener(this);
-    }
-
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -40,6 +36,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mDrawerLayout.closeDrawers(); // close navigation drawer
         return true;
+    }
+
+    private void init() {
+        mNavigationView.setNavigationItemSelectedListener(this);
     }
 
     private void navigationMappingClick() {

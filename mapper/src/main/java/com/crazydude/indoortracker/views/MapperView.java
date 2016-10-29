@@ -29,6 +29,10 @@ public class MapperView extends View {
     private Mode mCurrentMode = Mode.VIEW;
     private List<WifiPoint> mWifiPoints = new ArrayList<>();
 
+    public enum Mode {
+        VIEW, MAP
+    }
+
     public MapperView(Context context) {
         super(context);
         init();
@@ -49,6 +53,29 @@ public class MapperView extends View {
         init();
     }
 
+    public Mode getCurrentMode() {
+        return mCurrentMode;
+    }
+
+    public void createMap(int width, int height) {
+        mMapWidth = width;
+        mMapHeight = height;
+        mLongestWall = (mMapHeight >= mMapWidth) ? mMapHeight : mMapWidth;
+    }
+
+    public void switchMode(Mode mode) {
+        mCurrentMode = mode;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (mGestureDetector.onTouchEvent(event) | mScaleGestureDetector.onTouchEvent(event)) {
+            return true;
+        }
+
+        return super.onTouchEvent(event);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -67,7 +94,7 @@ public class MapperView extends View {
         mDrawPaint.setStrokeWidth(30);
         float pixelsPerMeter = fullSize / mLongestWall;
         for (WifiPoint wifiPoint : mWifiPoints) {
-            canvas.drawCircle(wifiPoint.x, wifiPoint.y, pixelsPerMeter, mDrawPaint);
+            canvas.drawCircle(wifiPoint.getX(), wifiPoint.getY(), pixelsPerMeter, mDrawPaint);
         }
     }
 
@@ -127,47 +154,32 @@ public class MapperView extends View {
         mDrawPaint.setStrokeWidth(25);
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (mGestureDetector.onTouchEvent(event) | mScaleGestureDetector.onTouchEvent(event)) {
-            return true;
-        }
-
-        return super.onTouchEvent(event);
-    }
-
-    public void createMap(int width, int height) {
-        mMapWidth = width;
-        mMapHeight = height;
-        mLongestWall = (mMapHeight >= mMapWidth) ? mMapHeight : mMapWidth;
-    }
-
     private void scaleImage(float scaleFactor, float focusX, float focusY) {
         mCameraMatrix.postScale(scaleFactor, scaleFactor, focusX, focusY);
         invalidate();
     }
 
-    public void switchMode(Mode mode) {
-        mCurrentMode = mode;
-    }
-
     private void createMapPoint(float x, float y) {
-        WifiPoint wifiPoint = new WifiPoint();
-        wifiPoint.x = x;
-        wifiPoint.y = y;
+        WifiPoint wifiPoint = new WifiPoint(x, y);
         mWifiPoints.add(wifiPoint);
         invalidate();
-    }
-
-    public enum Mode {
-        VIEW, MAP
     }
 
     private class GestureDetectorListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
-        public boolean onDown(MotionEvent e) {
-            return true;
+        public boolean onSingleTapUp(MotionEvent e) {
+            if (mCurrentMode == Mode.MAP) {
+                Matrix inverseMatrix = new Matrix();
+                mCameraMatrix.invert(inverseMatrix);
+
+                float[] points = {e.getX(), e.getY()};
+                inverseMatrix.mapPoints(points);
+
+                createMapPoint(points[0], points[1]);
+                return true;
+            }
+            return super.onSingleTapUp(e);
         }
 
         @Override
@@ -178,12 +190,8 @@ public class MapperView extends View {
         }
 
         @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            if (mCurrentMode == Mode.MAP) {
-                createMapPoint(e.getX(), e.getY());
-                return true;
-            }
-            return super.onSingleTapUp(e);
+        public boolean onDown(MotionEvent e) {
+            return true;
         }
     }
 

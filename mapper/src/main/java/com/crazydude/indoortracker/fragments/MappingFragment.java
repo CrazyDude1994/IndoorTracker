@@ -53,6 +53,15 @@ public class MappingFragment extends Fragment implements View.OnClickListener {
         return view;
     }
 
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.map_point_button:
+                mapPoint();
+                break;
+        }
+    }
+
     private void restoreMap() {
         mMapperView.createMap(mMapWidth, mMapHeight);
     }
@@ -85,15 +94,6 @@ public class MappingFragment extends Fragment implements View.OnClickListener {
         mMapWidth = width;
         mMapHeight = height;
         mMapperView.createMap(width, height);
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.map_point_button:
-                mapPoint();
-                break;
-        }
     }
 
     private void mapPoint() {
