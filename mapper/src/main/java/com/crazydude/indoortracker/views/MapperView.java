@@ -72,6 +72,9 @@ public class MapperView extends View {
         mWifiMapPointListener = wifiMapPointListener;
     }
 
+    public void update() {
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mGestureDetector.onTouchEvent(event) | mScaleGestureDetector.onTouchEvent(event)) {
@@ -96,7 +99,6 @@ public class MapperView extends View {
 
     private void drawWifiPoints(Canvas canvas, int fullSize) {
         mDrawPaint.setARGB(200, 0, 255, 0);
-        mDrawPaint.setStrokeWidth(30);
         float pixelsPerMeter = fullSize / mLongestWall;
         for (WifiPoint wifiPoint : mWifiPoints) {
             canvas.drawCircle(wifiPoint.getX(), wifiPoint.getY(), pixelsPerMeter, mDrawPaint);

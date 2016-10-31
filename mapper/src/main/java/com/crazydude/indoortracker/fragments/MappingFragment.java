@@ -96,6 +96,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> scanResults = mWifiManager.getScanResults();
                 mCurrentMappingPoint.setScanResult(scanResults);
+                mMapperView.update();
                 alertDialog.dismiss();
                 Toast.makeText(getContext(), R.string.scan_completed, Toast.LENGTH_SHORT).show();
                 context.unregisterReceiver(this);
@@ -111,7 +112,8 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
     }
 
     private void firstLaunchInit() {
-        showMapSizeDialog();
+//        showMapSizeDialog();
+        createNewMap(6, 6); // for debug purpose only
     }
 
     private void showMapSizeDialog() {
