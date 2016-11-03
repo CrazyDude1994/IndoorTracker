@@ -21,6 +21,7 @@ import com.crazydude.indoortracker.R;
 import com.crazydude.indoortracker.views.MapperView;
 import com.crazydude.indoortracker.views.WifiPoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -95,6 +96,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
             @Override
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> scanResults = mWifiManager.getScanResults();
+                filterResults(scanResults);
                 mCurrentMappingPoint.setScanResult(scanResults);
                 mMapperView.update();
                 alertDialog.dismiss();
@@ -105,6 +107,18 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
 
         IntentFilter intentFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         getContext().registerReceiver(receiver, intentFilter);
+    }
+
+    private void filterResults(List<ScanResult> scanResults) {
+        List<ScanResult> newList = new ArrayList<>();
+        for (ScanResult result : scanResults) {
+            if (result.SSID.equals("Kappa")) {
+                newList.add(result);
+            }
+        }
+
+        scanResults.clear();
+        scanResults.addAll(newList);
     }
 
     private void restoreMap() {

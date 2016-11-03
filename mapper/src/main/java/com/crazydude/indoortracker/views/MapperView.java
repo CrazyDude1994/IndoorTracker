@@ -14,6 +14,8 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.crazydude.indoortracker.utils.WifiUtils.calculateSignalLevel;
+
 /**
  * Created by Crazy on 25.10.2016.
  */
@@ -73,6 +75,7 @@ public class MapperView extends View {
     }
 
     public void update() {
+        invalidate();
     }
 
     @Override
@@ -98,10 +101,18 @@ public class MapperView extends View {
     }
 
     private void drawWifiPoints(Canvas canvas, int fullSize) {
-        mDrawPaint.setARGB(200, 0, 255, 0);
+        mDrawPaint.setTextSize(64);
         float pixelsPerMeter = fullSize / mLongestWall;
         for (WifiPoint wifiPoint : mWifiPoints) {
-            canvas.drawCircle(wifiPoint.getX(), wifiPoint.getY(), pixelsPerMeter, mDrawPaint);
+            if (wifiPoint.getScanResult() != null && wifiPoint.getScanResult().size() > 0) {
+                int signalLevel = calculateSignalLevel(wifiPoint.getScanResult().get(0).level, 100) + 1;
+                double distance = 100 - signalLevel;
+                mDrawPaint.setARGB(200, 0, 255, 0);
+                canvas.drawCircle(wifiPoint.getX(), wifiPoint.getY(), (float) (Math.sqrt(distance) * pixelsPerMeter), mDrawPaint);
+                mDrawPaint.setARGB(255, 0, 0, 0);
+/*                canvas.drawText(String.valueOf(distance),
+                        wifiPoint.getX(), wifiPoint.getY(), mDrawPaint)*/;
+            }
         }
     }
 
