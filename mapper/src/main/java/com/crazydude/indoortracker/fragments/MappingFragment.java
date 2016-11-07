@@ -10,7 +10,11 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -18,11 +22,17 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.crazydude.indoortracker.R;
+import com.crazydude.indoortracker.utils.WifiUtils;
 import com.crazydude.indoortracker.views.MapperView;
 import com.crazydude.indoortracker.views.WifiPoint;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Crazy on 25.10.2016.
@@ -33,6 +43,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
     private MapperView mMapperView;
     private Button mMapPointButton;
     private Integer mMapWidth, mMapHeight;
+    private Set<WifiPoint> mWifiPoints = new HashSet<>();
     private WifiPoint mCurrentMappingPoint;
     private WifiManager mWifiManager;
 
@@ -42,6 +53,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
 
     @Override
     public void onMapWifi(WifiPoint wifiPoint) {
+        mWifiPoints.add(wifiPoint);
         mCurrentMappingPoint = wifiPoint;
         scanPoint();
     }
@@ -53,6 +65,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
         mWifiManager = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
 
         setRetainInstance(true);
+        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -77,11 +90,42 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.menu_mapping, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_mapping_save_data:
+                if (mWifiPoints.size() <3) {
+                    Toast.makeText(getContext(), R.string.map_three_points, Toast.LENGTH_SHORT).show();
+                } else {
+                    showMapNameDialog();
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.map_point_button:
                 mapPoint();
                 break;
+        }
+    }
+
+    private void saveData(String mapName) {
+        try {
+            WifiUtils.saveDataToFile(getContext(), mapName, mWifiPoints);
+            Toast.makeText(getContext(), R.string.map_saved, Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+            Toast.makeText(getContext(), String.format(getString(R.string.failed_to_save_map), e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -97,7 +141,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> scanResults = mWifiManager.getScanResults();
                 filterResults(scanResults);
-                mCurrentMappingPoint.setScanResult(scanResults);
+                mCurrentMappingPoint.setScanResults(scanResults);
                 mMapperView.update();
                 alertDialog.dismiss();
                 Toast.makeText(getContext(), R.string.scan_completed, Toast.LENGTH_SHORT).show();
@@ -135,7 +179,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
         EditText widthEditText = (EditText) inputDataView.findViewById(R.id.dialog_map_size_width_edit);
         EditText heightEditText = (EditText) inputDataView.findViewById(R.id.dialog_map_size_height_edit);
 
-        AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+        new AlertDialog.Builder(getContext())
                 .setTitle(R.string.enter_map_size)
                 .setView(inputDataView)
                 .setPositiveButton(R.string.create,
@@ -144,8 +188,29 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
                                 createNewMap(Integer.valueOf(widthEditText.getText().toString()),
                                         Integer.valueOf(heightEditText.getText().toString()));
                             } catch (NumberFormatException e) {
+                                Toast.makeText(getContext(), R.string.wrong_number, Toast.LENGTH_SHORT).show();
                                 dialogInterface.dismiss();
                                 showMapSizeDialog();
+                            }
+                        }).show();
+    }
+
+    private void showMapNameDialog() {
+        View inputDataView = View.inflate(getContext(), R.layout.dialog_map_name, null);
+        EditText nameEditText = (EditText) inputDataView.findViewById(R.id.dialog_map_name_name_edit);
+
+        new AlertDialog.Builder(getContext())
+                .setTitle(R.string.enter_map_name)
+                .setView(inputDataView)
+                .setCancelable(true)
+                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel())
+                .setPositiveButton(R.string.create,
+                        (dialogInterface, i) -> {
+                            if (TextUtils.isEmpty(nameEditText.getText())) {
+                                showMapNameDialog();
+                                Toast.makeText(getContext(), R.string.name_cannot_be_empty, Toast.LENGTH_SHORT).show();
+                            } else {
+                                saveData(nameEditText.getText().toString());
                             }
                         }).show();
     }

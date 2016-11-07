@@ -9,4 +9,15 @@
     <string name="map_point">Map point</string>
     <string name="scanning">Scanning for wifi signals. Please wait</string>
     <string name="scan_completed">Scan completed</string>
+    <string name="save_map">Save map</string>
+    <string name="enter_map_name">Enter map name</string>
+    <string name="wrong_number">Bad number</string>
+    <string name="name_cannot_be_empty">Map name cannot be empty</string>
+    <string name="cancel">Cancel</string>
+    <string name="map_three_points">Map at least 3 points</string>
+    <string name="failed_to_save_map">Failed to save map. Reason: %s</string>
+    <string name="map_saved">Map saved</string>
+    <string name="load_map">Load map</string>
+    <string name="map_list_data_format" translatable="false">%s (%d points)</string>
+    <string name="choose_map">Choose map</string>
 </resources>

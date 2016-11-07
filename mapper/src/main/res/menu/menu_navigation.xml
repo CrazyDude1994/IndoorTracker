@@ -5,4 +5,8 @@
         android:id="@+id/menu_navigation_mapping"
         android:icon="@drawable/ic_mapping"
         android:title="@string/mapping"/>
+    <item
+        android:id="@+id/menu_navigation_load_map"
+        android:icon="@drawable/ic_load_map"
+        android:title="@string/load_map"/>
 </menu>

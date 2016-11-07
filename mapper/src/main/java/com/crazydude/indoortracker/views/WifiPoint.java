@@ -11,7 +11,7 @@ public class WifiPoint {
 
     private float x;
     private float y;
-    private List<ScanResult> mScanResult;
+    private List<ScanResult> scanResults;
 
     public WifiPoint(float x, float y) {
         this.x = x;
@@ -34,11 +34,11 @@ public class WifiPoint {
         this.x = x;
     }
 
-    public List<ScanResult> getScanResult() {
-        return mScanResult;
+    public List<ScanResult> getScanResults() {
+        return scanResults;
     }
 
-    public void setScanResult(List<ScanResult> scanResult) {
-        mScanResult = scanResult;
+    public void setScanResults(List<ScanResult> scanResults) {
+        this.scanResults = scanResults;
     }
 }

@@ -31,6 +31,8 @@ public class MapperView extends View {
     private Mode mCurrentMode = Mode.VIEW;
     private List<WifiPoint> mWifiPoints = new ArrayList<>();
     private WifiMapPointListener mWifiMapPointListener;
+    private float mPixelsPerMeter;
+    private int mFullSize;
 
     public enum Mode {
         VIEW, MAP
@@ -92,45 +94,46 @@ public class MapperView extends View {
         super.onDraw(canvas);
         if (mMapWidth == 0 || mMapHeight == 0) return;
 
-        int fullSize = (canvas.getHeight() >= canvas.getWidth()) ? canvas.getWidth() : canvas.getHeight();
+        mFullSize = (canvas.getHeight() >= canvas.getWidth()) ? canvas.getWidth() : canvas.getHeight();
+        mPixelsPerMeter = mFullSize / mLongestWall;
 
         canvas.setMatrix(mCameraMatrix);
-        drawGrid(canvas, fullSize);
-        drawWalls(canvas, fullSize);
-        drawWifiPoints(canvas, fullSize);
+        drawGrid(canvas);
+        drawWalls(canvas);
+        drawWifiPoints(canvas);
     }
 
-    private void drawWifiPoints(Canvas canvas, int fullSize) {
+    private void drawWifiPoints(Canvas canvas) {
         mDrawPaint.setTextSize(64);
-        float pixelsPerMeter = fullSize / mLongestWall;
         for (WifiPoint wifiPoint : mWifiPoints) {
-            if (wifiPoint.getScanResult() != null && wifiPoint.getScanResult().size() > 0) {
-                int signalLevel = calculateSignalLevel(wifiPoint.getScanResult().get(0).level, 100) + 1;
+            if (wifiPoint.getScanResults() != null && wifiPoint.getScanResults().size() > 0) {
+                int signalLevel = calculateSignalLevel(wifiPoint.getScanResults().get(0).level, 100) + 1;
                 double distance = 100 - signalLevel;
+                float[] canvasCoordinates = mapToCanvasCoordinates(wifiPoint.getX(), wifiPoint.getY());
                 mDrawPaint.setARGB(200, 0, 255, 0);
-                canvas.drawCircle(wifiPoint.getX(), wifiPoint.getY(), (float) (Math.sqrt(distance) * pixelsPerMeter), mDrawPaint);
+                canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], (float) (Math.sqrt(distance) * mPixelsPerMeter), mDrawPaint);
                 mDrawPaint.setARGB(255, 0, 0, 0);
 /*                canvas.drawText(String.valueOf(distance),
-                        wifiPoint.getX(), wifiPoint.getY(), mDrawPaint)*/;
+                        wifiPoint.getX(), wifiPoint.getY(), mDrawPaint)*/
+                ;
             }
         }
     }
 
-    private void drawGrid(Canvas canvas, int fullSize) {
+    private void drawGrid(Canvas canvas) {
         mDrawPaint.setARGB(255, 174, 234, 255);
         mDrawPaint.setStrokeWidth(4);
-        float pixelsPerMeter = fullSize / mLongestWall;
 
         for (int i = 1; i < mMapHeight; i++) {
-            canvas.drawLine(0, i * pixelsPerMeter, mMapWidth * pixelsPerMeter, i * pixelsPerMeter, mDrawPaint);
+            canvas.drawLine(0, i * mPixelsPerMeter, mMapWidth * mPixelsPerMeter, i * mPixelsPerMeter, mDrawPaint);
         }
 
         for (int i = 1; i < mMapWidth; i++) {
-            canvas.drawLine(i * pixelsPerMeter, 0, i * pixelsPerMeter, mMapHeight * pixelsPerMeter, mDrawPaint);
+            canvas.drawLine(i * mPixelsPerMeter, 0, i * mPixelsPerMeter, mMapHeight * mPixelsPerMeter, mDrawPaint);
         }
     }
 
-    private void drawWalls(Canvas canvas, int fullSize) {
+    private void drawWalls(Canvas canvas) {
         mDrawPaint.setARGB(255, 0, 0, 0);
         mDrawPaint.setStrokeWidth(16);
 
@@ -140,24 +143,24 @@ public class MapperView extends View {
         canvas.drawLine(
                 0,
                 0,
-                koefWallWidth * fullSize,
+                koefWallWidth * mFullSize,
                 0,
                 mDrawPaint); //top wall
         canvas.drawLine(
-                koefWallWidth * fullSize,
+                koefWallWidth * mFullSize,
                 0,
-                koefWallWidth * fullSize,
-                koefWallHeight * fullSize,
+                koefWallWidth * mFullSize,
+                koefWallHeight * mFullSize,
                 mDrawPaint); //right wall
         canvas.drawLine(
-                koefWallWidth * fullSize,
-                koefWallHeight * fullSize,
+                koefWallWidth * mFullSize,
+                koefWallHeight * mFullSize,
                 0,
-                koefWallHeight * fullSize,
+                koefWallHeight * mFullSize,
                 mDrawPaint); //bottom wall
         canvas.drawLine(
                 0,
-                koefWallHeight * fullSize,
+                koefWallHeight * mFullSize,
                 0,
                 0,
                 mDrawPaint); //left wall
@@ -186,6 +189,18 @@ public class MapperView extends View {
         }
     }
 
+    private float[] mapToWorldCoordinates(float[] points) {
+        if (points.length == 2) {
+            return new float[]{points[0] / mPixelsPerMeter, points[1] / mPixelsPerMeter};
+        } else {
+            throw new IllegalArgumentException("Points array must be size of 2");
+        }
+    }
+
+    private float[] mapToCanvasCoordinates(float x, float y) {
+        return new float[] {x * mPixelsPerMeter, y * mPixelsPerMeter};
+    }
+
     public interface WifiMapPointListener {
 
         void onMapWifi(WifiPoint wifiPoint);
@@ -202,7 +217,8 @@ public class MapperView extends View {
                 float[] points = {e.getX(), e.getY()};
                 inverseMatrix.mapPoints(points);
 
-                createMapPoint(points[0], points[1]);
+                float[] worldCoordinates = mapToWorldCoordinates(points);
+                createMapPoint(worldCoordinates[0], worldCoordinates[1]);
                 return true;
             }
             return super.onSingleTapUp(e);

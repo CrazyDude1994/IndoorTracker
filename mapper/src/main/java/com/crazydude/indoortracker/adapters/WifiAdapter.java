@@ -1,4 +1,4 @@
-package com.crazydude.indoortracker;
+package com.crazydude.indoortracker.adapters;
 
 import android.net.wifi.ScanResult;
 import android.support.v7.widget.RecyclerView;
