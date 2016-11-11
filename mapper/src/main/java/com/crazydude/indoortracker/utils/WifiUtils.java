@@ -1,7 +1,6 @@
 package com.crazydude.indoortracker.utils;
 
 import android.content.Context;
-import android.net.wifi.ScanResult;
 
 import com.crazydude.indoortracker.models.MapFileModel;
 import com.crazydude.indoortracker.views.WifiPoint;
@@ -12,8 +11,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -46,11 +43,13 @@ public class WifiUtils {
         }
     }
 
-    public static void saveDataToFile(Context context, String mapName, Set<WifiPoint> data) throws IOException {
+    public static void saveDataToFile(Context context, String mapName, Set<WifiPoint> data, int width,
+                                      int height) throws IOException {
         Gson gson = buildGson();
 
         File file = new File(context.getFilesDir(), mapName + ".json");
-        String json = gson.toJson(data);
+        MapFileModel fileModel = new MapFileModel(data, mapName, width, height);
+        String json = gson.toJson(fileModel);
         FileOutputStream outputStream = new FileOutputStream(file);
         byte[] bytes = json.getBytes();
         outputStream.write(bytes);
@@ -65,10 +64,10 @@ public class WifiUtils {
         for (File file : filesDir.listFiles()) {
             try {
                 String data = FileUtils.readFile(file);
-                ScanResult[] scanResults = gson.fromJson(data, ScanResult[].class);
-                List<ScanResult> resultList = new ArrayList<>(Arrays.asList(scanResults));
+                MapFileModel fileModel = gson.fromJson(data, MapFileModel.class);
 
-                result.add(new MapFileModel(file.getName(), new HashSet<>(resultList)));
+                result.add(new MapFileModel(fileModel.getWifiPoints(), file.getName(), fileModel.getRoomWidth(),
+                        fileModel.getRoomHeight()));
             } catch (IOException e) {
                 continue;
             }

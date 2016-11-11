@@ -1,15 +1,12 @@
 package com.crazydude.indoortracker.views;
 
 import android.content.Context;
-import android.net.wifi.ScanResult;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.widget.TextView;
 
 import com.crazydude.indoortracker.R;
 import com.crazydude.indoortracker.models.MapFileModel;
-
-import java.util.Set;
 
 /**
  * Created by Crazy on 07.11.2016.
@@ -44,6 +41,6 @@ public class MapListView extends TextView {
     }
 
     public void setData(MapFileModel data) {
-        setText(String.format(getContext().getString(R.string.map_list_data_format), data.getMapName(), data.getScanResults().size()));
+        setText(String.format(getContext().getString(R.string.map_list_data_format), data.getMapName(), data.getWifiPoints().size()));
     }
 }

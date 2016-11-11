@@ -8,6 +8,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
@@ -17,16 +18,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.crazydude.indoortracker.R;
+import com.crazydude.indoortracker.models.MapFileModel;
 import com.crazydude.indoortracker.utils.WifiUtils;
 import com.crazydude.indoortracker.views.MapperView;
 import com.crazydude.indoortracker.views.WifiPoint;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,17 +37,25 @@ import java.util.Set;
  * Created by Crazy on 25.10.2016.
  */
 
-public class MappingFragment extends Fragment implements View.OnClickListener, MapperView.WifiMapPointListener {
+public class MappingFragment extends Fragment implements MapperView.WifiMapPointListener {
 
     private MapperView mMapperView;
-    private Button mMapPointButton;
     private Integer mMapWidth, mMapHeight;
     private Set<WifiPoint> mWifiPoints = new HashSet<>();
     private WifiPoint mCurrentMappingPoint;
     private WifiManager mWifiManager;
+    private Snackbar mModeSnackbar;
+    private MenuItem mMappingModeItem;
+    private MapFileModel mData;
 
     public static MappingFragment newInstance() {
         return new MappingFragment();
+    }
+
+    public static MappingFragment newInstance(MapFileModel fileModel) {
+        MappingFragment mappingFragment = new MappingFragment();
+        mappingFragment.setData(fileModel);
+        return mappingFragment;
     }
 
     @Override
@@ -74,9 +81,6 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
         View view = inflater.inflate(R.layout.fragment_mapping, container, false);
 
         mMapperView = (MapperView) view.findViewById(R.id.mapper_view);
-        mMapPointButton = (Button) view.findViewById(R.id.map_point_button);
-
-        mMapPointButton.setOnClickListener(this);
 
         mMapperView.setWifiMapPointListener(this);
 
@@ -100,29 +104,28 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_mapping_save_data:
-                if (mWifiPoints.size() <3) {
+                if (mWifiPoints.size() < 3) {
                     Toast.makeText(getContext(), R.string.map_three_points, Toast.LENGTH_SHORT).show();
                 } else {
                     showMapNameDialog();
                 }
+                return true;
+            case R.id.map_point_button:
+                mMappingModeItem = item;
+                switchToMappingMode();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.map_point_button:
-                mapPoint();
-                break;
-        }
+    public void setData(MapFileModel data) {
+        mData = data;
     }
 
     private void saveData(String mapName) {
         try {
-            WifiUtils.saveDataToFile(getContext(), mapName, mWifiPoints);
+            WifiUtils.saveDataToFile(getContext(), mapName, mWifiPoints, mMapWidth, mMapHeight);
             Toast.makeText(getContext(), R.string.map_saved, Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             Toast.makeText(getContext(), String.format(getString(R.string.failed_to_save_map), e.getMessage()), Toast.LENGTH_LONG).show();
@@ -140,7 +143,7 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
             @Override
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> scanResults = mWifiManager.getScanResults();
-                filterResults(scanResults);
+//                filterResults(scanResults);
                 mCurrentMappingPoint.setScanResults(scanResults);
                 mMapperView.update();
                 alertDialog.dismiss();
@@ -221,7 +224,16 @@ public class MappingFragment extends Fragment implements View.OnClickListener, M
         mMapperView.createMap(width, height);
     }
 
-    private void mapPoint() {
+    private void switchToMappingMode() {
         mMapperView.switchMode(MapperView.Mode.MAP);
+        mMappingModeItem.setVisible(false);
+        mModeSnackbar = Snackbar.make(getView(), R.string.mapping_mode, Snackbar.LENGTH_INDEFINITE);
+        mModeSnackbar.setAction(R.string.switch_to_view_mode,
+                view -> {
+                    mMapperView.switchMode(MapperView.Mode.VIEW);
+                    mModeSnackbar.dismiss();
+                    mMappingModeItem.setVisible(true);
+                });
+        mModeSnackbar.show();
     }
 }

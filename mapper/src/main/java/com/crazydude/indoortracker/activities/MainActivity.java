@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void navigationMapLoadClick(MapFileModel fileModel) {
-
+        MappingFragment.newInstance(fileModel);
     }
 
     private void init() {

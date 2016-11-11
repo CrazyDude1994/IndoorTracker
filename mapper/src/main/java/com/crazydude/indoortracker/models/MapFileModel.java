@@ -1,6 +1,7 @@
 package com.crazydude.indoortracker.models;
 
-import android.net.wifi.ScanResult;
+import com.crazydude.indoortracker.views.WifiPoint;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.Set;
 
@@ -10,20 +11,44 @@ import java.util.Set;
 
 public class MapFileModel {
 
-    private Set<ScanResult> mScanResults;
+    @SerializedName("scan_results")
+    private Set<WifiPoint> mWifiPoints;
+    @SerializedName("map_name")
     private String mMapName;
+    @SerializedName("width")
+    private int mRoomWidth;
+    @SerializedName("height")
+    private int mRoomHeight;
 
-    public MapFileModel(String mapName, Set<ScanResult> scanResults) {
-        mScanResults = scanResults;
+    public MapFileModel(Set<WifiPoint> wifiPoints, String mapName, int roomWidth, int roomHeight) {
+        mWifiPoints = wifiPoints;
         mMapName = mapName;
+        mRoomWidth = roomWidth;
+        mRoomHeight = roomHeight;
     }
 
-    public Set<ScanResult> getScanResults() {
-        return mScanResults;
+    public int getRoomHeight() {
+        return mRoomHeight;
     }
 
-    public void setScanResults(Set<ScanResult> scanResults) {
-        mScanResults = scanResults;
+    public void setRoomHeight(int roomHeight) {
+        mRoomHeight = roomHeight;
+    }
+
+    public int getRoomWidth() {
+        return mRoomWidth;
+    }
+
+    public void setRoomWidth(int roomWidth) {
+        mRoomWidth = roomWidth;
+    }
+
+    public Set<WifiPoint> getWifiPoints() {
+        return mWifiPoints;
+    }
+
+    public void setWifiPoints(Set<WifiPoint> wifiPoints) {
+        mWifiPoints = wifiPoints;
     }
 
     public String getMapName() {
