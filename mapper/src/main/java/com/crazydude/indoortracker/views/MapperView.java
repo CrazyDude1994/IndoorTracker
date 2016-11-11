@@ -11,8 +11,8 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.crazydude.indoortracker.utils.WifiUtils.calculateSignalLevel;
 
@@ -29,11 +29,10 @@ public class MapperView extends View {
     private int mMapWidth, mMapHeight;
     private float mLongestWall;
     private Mode mCurrentMode = Mode.VIEW;
-    private List<WifiPoint> mWifiPoints = new ArrayList<>();
+    private Set<WifiPoint> mWifiPoints = new HashSet<>();
     private WifiMapPointListener mWifiMapPointListener;
     private float mPixelsPerMeter;
     private int mFullSize;
-
     public enum Mode {
         VIEW, MAP
     }
@@ -56,6 +55,11 @@ public class MapperView extends View {
     public MapperView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
+    }
+
+    public void setWifiPoints(Set<WifiPoint> wifiPoints) {
+        mWifiPoints = wifiPoints;
+        update();
     }
 
     public Mode getCurrentMode() {
@@ -111,11 +115,11 @@ public class MapperView extends View {
                 double distance = 100 - signalLevel;
                 float[] canvasCoordinates = mapToCanvasCoordinates(wifiPoint.getX(), wifiPoint.getY());
                 mDrawPaint.setARGB(200, 0, 255, 0);
-                canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], (float) (Math.sqrt(distance) * mPixelsPerMeter), mDrawPaint);
+                canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], mPixelsPerMeter * 2, mDrawPaint);
+//                canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], (float) (Math.sqrt(distance) * mPixelsPerMeter), mDrawPaint);
                 mDrawPaint.setARGB(255, 0, 0, 0);
 /*                canvas.drawText(String.valueOf(distance),
                         wifiPoint.getX(), wifiPoint.getY(), mDrawPaint)*/
-                ;
             }
         }
     }
@@ -198,7 +202,7 @@ public class MapperView extends View {
     }
 
     private float[] mapToCanvasCoordinates(float x, float y) {
-        return new float[] {x * mPixelsPerMeter, y * mPixelsPerMeter};
+        return new float[]{x * mPixelsPerMeter, y * mPixelsPerMeter};
     }
 
     public interface WifiMapPointListener {

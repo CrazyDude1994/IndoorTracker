@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private NavigationView mNavigationView;
     private DrawerLayout mDrawerLayout;
+    private AlertDialog mMapChooseDialog;
 
     @Override
     public void onClick(MapFileModel fileModel) {
@@ -56,7 +57,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void navigationMapLoadClick(MapFileModel fileModel) {
-        MappingFragment.newInstance(fileModel);
+        if (mMapChooseDialog != null) {
+            mMapChooseDialog.dismiss();
+        }
+        switchMainContainer(MappingFragment.newInstance(fileModel));
     }
 
     private void init() {
@@ -77,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mapListAdapter.setMapListAdapterClickListener(this);
         recyclerView.setAdapter(mapListAdapter);
 
-        new AlertDialog.Builder(this)
+        mMapChooseDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.choose_map)
                 .setView(inputDataView)
                 .setCancelable(true)

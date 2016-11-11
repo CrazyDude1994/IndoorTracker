@@ -46,7 +46,6 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     private WifiManager mWifiManager;
     private Snackbar mModeSnackbar;
     private MenuItem mMappingModeItem;
-    private MapFileModel mData;
 
     public static MappingFragment newInstance() {
         return new MappingFragment();
@@ -56,6 +55,12 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
         MappingFragment mappingFragment = new MappingFragment();
         mappingFragment.setData(fileModel);
         return mappingFragment;
+    }
+
+    public void setData(MapFileModel data) {
+        mWifiPoints = data.getWifiPoints();
+        mMapWidth = data.getRoomWidth();
+        mMapHeight = data.getRoomHeight();
     }
 
     @Override
@@ -119,10 +124,6 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
         }
     }
 
-    public void setData(MapFileModel data) {
-        mData = data;
-    }
-
     private void saveData(String mapName) {
         try {
             WifiUtils.saveDataToFile(getContext(), mapName, mWifiPoints, mMapWidth, mMapHeight);
@@ -173,8 +174,14 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     }
 
     private void firstLaunchInit() {
-//        showMapSizeDialog();
-        createNewMap(6, 6); // for debug purpose only
+        if (mMapHeight == null) {
+            //        showMapSizeDialog();
+            createNewMap(6, 6); // for debug purpose only
+        } else {
+
+            createNewMap(mMapWidth, mMapWidth);
+            mMapperView.setWifiPoints(mWifiPoints);
+        }
     }
 
     private void showMapSizeDialog() {

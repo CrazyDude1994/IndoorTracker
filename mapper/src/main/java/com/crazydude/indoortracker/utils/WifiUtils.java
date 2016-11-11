@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.crazydude.indoortracker.models.MapFileModel;
 import com.crazydude.indoortracker.views.WifiPoint;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -11,6 +13,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -61,7 +64,11 @@ public class WifiUtils {
         List<MapFileModel> result = new ArrayList<>();
 
         File filesDir = context.getFilesDir();
-        for (File file : filesDir.listFiles()) {
+        for (File file : filesDir.listFiles(
+                (file1, s) -> {
+                    return s.endsWith(".json");
+                })
+                ) {
             try {
                 String data = FileUtils.readFile(file);
                 MapFileModel fileModel = gson.fromJson(data, MapFileModel.class);
@@ -77,8 +84,20 @@ public class WifiUtils {
     }
 
     private static Gson buildGson() {
+        List<String> exludedList = Arrays.asList("operatorFriendlyName", "venueName", "informationElements", "wifiSsid");
         return new GsonBuilder()
                 .setPrettyPrinting()
+                .setExclusionStrategies(new ExclusionStrategy() {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f) {
+                        return exludedList.contains(f.getName());
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz) {
+                        return false;
+                    }
+                })
                 .disableHtmlEscaping()
                 .create();
     }
