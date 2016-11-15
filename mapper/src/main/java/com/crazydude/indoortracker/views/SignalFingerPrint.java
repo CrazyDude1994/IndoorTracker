@@ -4,6 +4,7 @@ import android.net.wifi.ScanResult;
 
 import com.crazydude.indoortracker.models.Position;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
 public class SignalFingerPrint {
 
     private Position position;
-    private List<ScanResult> scanResults;
+    private List<ScanResult> scanResults = new ArrayList<>();
 
     public SignalFingerPrint(float x, float y) {
         this.position = new Position(x, y);
@@ -30,7 +31,7 @@ public class SignalFingerPrint {
         return scanResults;
     }
 
-    public void setScanResults(List<ScanResult> scanResults) {
-        this.scanResults = scanResults;
+    public void addScanResults(List<ScanResult> scanResults) {
+        this.scanResults.addAll(scanResults);
     }
 }

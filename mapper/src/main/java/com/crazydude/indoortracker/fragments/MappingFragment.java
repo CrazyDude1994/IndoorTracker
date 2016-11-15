@@ -41,6 +41,8 @@ import java.util.Set;
 
 public class MappingFragment extends Fragment implements MapperView.WifiMapPointListener {
 
+    private final int SCAN_TIMES = 5;
+
     private MapperView mMapperView;
     private Integer mMapWidth, mMapHeight;
     private Set<SignalFingerPrint> mSignalFingerPrints = new HashSet<>();
@@ -48,6 +50,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     private WifiManager mWifiManager;
     private Snackbar mModeSnackbar;
     private MenuItem mMappingModeItem;
+    private int mCurrentScanNumber = 0;
     private WifiPointDetectorAlgorithm mWifiPointDetectorAlgorithm;
 
     public static MappingFragment newInstance() {
@@ -70,6 +73,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     public void onMapWifi(SignalFingerPrint signalFingerPrint) {
         mSignalFingerPrints.add(signalFingerPrint);
         mCurrentMappingPoint = signalFingerPrint;
+        mCurrentScanNumber = 1;
         scanPoint();
     }
 
@@ -139,7 +143,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     private void scanPoint() {
         AlertDialog alertDialog = new AlertDialog.Builder(getContext())
                 .setCancelable(false)
-                .setMessage(R.string.scanning)
+                .setMessage(getString(R.string.scanning, mCurrentScanNumber, SCAN_TIMES))
                 .show();
         mWifiManager.startScan();
 
@@ -147,12 +151,14 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
             @Override
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> scanResults = mWifiManager.getScanResults();
-                mCurrentMappingPoint.setScanResults(scanResults);
+                mCurrentMappingPoint.addScanResults(scanResults);
                 mMapperView.update();
                 alertDialog.dismiss();
-                Toast.makeText(getContext(), R.string.scan_completed, Toast.LENGTH_SHORT).show();
-//                calculateWifiPointPositions();
                 context.unregisterReceiver(this);
+                if (mCurrentScanNumber < SCAN_TIMES) {
+                    mCurrentScanNumber++;
+                    scanPoint();
+                }
             }
         };
 
