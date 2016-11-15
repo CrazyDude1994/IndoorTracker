@@ -3,7 +3,7 @@ package com.crazydude.indoortracker.utils;
 import android.content.Context;
 
 import com.crazydude.indoortracker.models.MapFileModel;
-import com.crazydude.indoortracker.views.WifiPoint;
+import com.crazydude.indoortracker.views.SignalFingerPrint;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -46,7 +46,7 @@ public class WifiUtils {
         }
     }
 
-    public static void saveDataToFile(Context context, String mapName, Set<WifiPoint> data, int width,
+    public static void saveDataToFile(Context context, String mapName, Set<SignalFingerPrint> data, int width,
                                       int height) throws IOException {
         Gson gson = buildGson();
 
@@ -73,7 +73,7 @@ public class WifiUtils {
                 String data = FileUtils.readFile(file);
                 MapFileModel fileModel = gson.fromJson(data, MapFileModel.class);
 
-                result.add(new MapFileModel(fileModel.getWifiPoints(), file.getName(), fileModel.getRoomWidth(),
+                result.add(new MapFileModel(fileModel.getSignalFingerPrints(), file.getName(), fileModel.getRoomWidth(),
                         fileModel.getRoomHeight()));
             } catch (IOException e) {
                 continue;

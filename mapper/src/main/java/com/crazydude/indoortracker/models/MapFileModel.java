@@ -1,6 +1,6 @@
 package com.crazydude.indoortracker.models;
 
-import com.crazydude.indoortracker.views.WifiPoint;
+import com.crazydude.indoortracker.views.SignalFingerPrint;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Set;
@@ -12,7 +12,7 @@ import java.util.Set;
 public class MapFileModel {
 
     @SerializedName("scan_results")
-    private Set<WifiPoint> mWifiPoints;
+    private Set<SignalFingerPrint> mSignalFingerPrints;
     @SerializedName("map_name")
     private String mMapName;
     @SerializedName("width")
@@ -20,8 +20,8 @@ public class MapFileModel {
     @SerializedName("height")
     private int mRoomHeight;
 
-    public MapFileModel(Set<WifiPoint> wifiPoints, String mapName, int roomWidth, int roomHeight) {
-        mWifiPoints = wifiPoints;
+    public MapFileModel(Set<SignalFingerPrint> signalFingerPrints, String mapName, int roomWidth, int roomHeight) {
+        mSignalFingerPrints = signalFingerPrints;
         mMapName = mapName;
         mRoomWidth = roomWidth;
         mRoomHeight = roomHeight;
@@ -43,12 +43,12 @@ public class MapFileModel {
         mRoomWidth = roomWidth;
     }
 
-    public Set<WifiPoint> getWifiPoints() {
-        return mWifiPoints;
+    public Set<SignalFingerPrint> getSignalFingerPrints() {
+        return mSignalFingerPrints;
     }
 
-    public void setWifiPoints(Set<WifiPoint> wifiPoints) {
-        mWifiPoints = wifiPoints;
+    public void setSignalFingerPrints(Set<SignalFingerPrint> signalFingerPrints) {
+        mSignalFingerPrints = signalFingerPrints;
     }
 
     public String getMapName() {

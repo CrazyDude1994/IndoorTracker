@@ -22,13 +22,15 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.crazydude.indoortracker.R;
+import com.crazydude.indoortracker.algorithms.SignalLevelPointDetector;
+import com.crazydude.indoortracker.algorithms.WifiPointDetectorAlgorithm;
 import com.crazydude.indoortracker.models.MapFileModel;
+import com.crazydude.indoortracker.models.WifiPoint;
 import com.crazydude.indoortracker.utils.WifiUtils;
 import com.crazydude.indoortracker.views.MapperView;
-import com.crazydude.indoortracker.views.WifiPoint;
+import com.crazydude.indoortracker.views.SignalFingerPrint;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,11 +43,12 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
 
     private MapperView mMapperView;
     private Integer mMapWidth, mMapHeight;
-    private Set<WifiPoint> mWifiPoints = new HashSet<>();
-    private WifiPoint mCurrentMappingPoint;
+    private Set<SignalFingerPrint> mSignalFingerPrints = new HashSet<>();
+    private SignalFingerPrint mCurrentMappingPoint;
     private WifiManager mWifiManager;
     private Snackbar mModeSnackbar;
     private MenuItem mMappingModeItem;
+    private WifiPointDetectorAlgorithm mWifiPointDetectorAlgorithm;
 
     public static MappingFragment newInstance() {
         return new MappingFragment();
@@ -58,15 +61,15 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     }
 
     public void setData(MapFileModel data) {
-        mWifiPoints = data.getWifiPoints();
+        mSignalFingerPrints = data.getSignalFingerPrints();
         mMapWidth = data.getRoomWidth();
         mMapHeight = data.getRoomHeight();
     }
 
     @Override
-    public void onMapWifi(WifiPoint wifiPoint) {
-        mWifiPoints.add(wifiPoint);
-        mCurrentMappingPoint = wifiPoint;
+    public void onMapWifi(SignalFingerPrint signalFingerPrint) {
+        mSignalFingerPrints.add(signalFingerPrint);
+        mCurrentMappingPoint = signalFingerPrint;
         scanPoint();
     }
 
@@ -109,7 +112,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_mapping_save_data:
-                if (mWifiPoints.size() < 3) {
+                if (mSignalFingerPrints.size() < 3) {
                     Toast.makeText(getContext(), R.string.map_three_points, Toast.LENGTH_SHORT).show();
                 } else {
                     showMapNameDialog();
@@ -126,7 +129,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
 
     private void saveData(String mapName) {
         try {
-            WifiUtils.saveDataToFile(getContext(), mapName, mWifiPoints, mMapWidth, mMapHeight);
+            WifiUtils.saveDataToFile(getContext(), mapName, mSignalFingerPrints, mMapWidth, mMapHeight);
             Toast.makeText(getContext(), R.string.map_saved, Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             Toast.makeText(getContext(), String.format(getString(R.string.failed_to_save_map), e.getMessage()), Toast.LENGTH_LONG).show();
@@ -144,11 +147,11 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
             @Override
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> scanResults = mWifiManager.getScanResults();
-//                filterResults(scanResults);
                 mCurrentMappingPoint.setScanResults(scanResults);
                 mMapperView.update();
                 alertDialog.dismiss();
                 Toast.makeText(getContext(), R.string.scan_completed, Toast.LENGTH_SHORT).show();
+//                calculateWifiPointPositions();
                 context.unregisterReceiver(this);
             }
         };
@@ -157,16 +160,13 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
         getContext().registerReceiver(receiver, intentFilter);
     }
 
-    private void filterResults(List<ScanResult> scanResults) {
-        List<ScanResult> newList = new ArrayList<>();
-        for (ScanResult result : scanResults) {
-            if (result.SSID.equals("Kappa")) {
-                newList.add(result);
-            }
+    private void calculateWifiPointPositions() {
+        if (mSignalFingerPrints.size() < 3) {
+            return;
         }
-
-        scanResults.clear();
-        scanResults.addAll(newList);
+        mWifiPointDetectorAlgorithm = new SignalLevelPointDetector(mSignalFingerPrints);
+        Set<WifiPoint> wifiPoints = mWifiPointDetectorAlgorithm.detectWifiPointPosition();
+        mMapperView.setWifiPoints(wifiPoints);
     }
 
     private void restoreMap() {
@@ -175,12 +175,12 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
 
     private void firstLaunchInit() {
         if (mMapHeight == null) {
-            //        showMapSizeDialog();
+//                    showMapSizeDialog();
             createNewMap(6, 6); // for debug purpose only
         } else {
-
             createNewMap(mMapWidth, mMapWidth);
-            mMapperView.setWifiPoints(mWifiPoints);
+            mMapperView.setSignalFingerPrints(mSignalFingerPrints);
+//            calculateWifiPointPositions();
         }
     }
 

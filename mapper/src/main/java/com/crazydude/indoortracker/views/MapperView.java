@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import com.crazydude.indoortracker.models.WifiPoint;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,10 +31,12 @@ public class MapperView extends View {
     private int mMapWidth, mMapHeight;
     private float mLongestWall;
     private Mode mCurrentMode = Mode.VIEW;
-    private Set<WifiPoint> mWifiPoints = new HashSet<>();
+    private Set<SignalFingerPrint> mSignalFingerPrints = new HashSet<>();
     private WifiMapPointListener mWifiMapPointListener;
     private float mPixelsPerMeter;
     private int mFullSize;
+    private Set<WifiPoint> mWifiPoints;
+
     public enum Mode {
         VIEW, MAP
     }
@@ -57,8 +61,8 @@ public class MapperView extends View {
         init();
     }
 
-    public void setWifiPoints(Set<WifiPoint> wifiPoints) {
-        mWifiPoints = wifiPoints;
+    public void setSignalFingerPrints(Set<SignalFingerPrint> signalFingerPrints) {
+        mSignalFingerPrints = signalFingerPrints;
         update();
     }
 
@@ -84,6 +88,11 @@ public class MapperView extends View {
         invalidate();
     }
 
+    public void setWifiPoints(Set<WifiPoint> wifiPoints) {
+        mWifiPoints = wifiPoints;
+        update();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mGestureDetector.onTouchEvent(event) | mScaleGestureDetector.onTouchEvent(event)) {
@@ -104,22 +113,30 @@ public class MapperView extends View {
         canvas.setMatrix(mCameraMatrix);
         drawGrid(canvas);
         drawWalls(canvas);
+        drawFingerPrintPoints(canvas);
         drawWifiPoints(canvas);
     }
 
     private void drawWifiPoints(Canvas canvas) {
-        mDrawPaint.setTextSize(64);
         for (WifiPoint wifiPoint : mWifiPoints) {
-            if (wifiPoint.getScanResults() != null && wifiPoint.getScanResults().size() > 0) {
-                int signalLevel = calculateSignalLevel(wifiPoint.getScanResults().get(0).level, 100) + 1;
+            float[] canvasCoordinates = mapToCanvasCoordinates(wifiPoint.getPosition().getX(), wifiPoint.getPosition().getY());
+            mDrawPaint.setARGB(255, 0, 0, 255);
+            canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], mPixelsPerMeter / 4, mDrawPaint);
+            mDrawPaint.setARGB(255, 0, 0, 0);
+            canvas.drawText(String.valueOf(wifiPoint.getPointName()), canvasCoordinates[0], canvasCoordinates[1], mDrawPaint);
+        }
+    }
+
+    private void drawFingerPrintPoints(Canvas canvas) {
+        mDrawPaint.setTextSize(64);
+        for (SignalFingerPrint signalFingerPrint : mSignalFingerPrints) {
+            if (signalFingerPrint.getScanResults() != null && signalFingerPrint.getScanResults().size() > 0) {
+                int signalLevel = calculateSignalLevel(signalFingerPrint.getScanResults().get(0).level, 100) + 1;
                 double distance = 100 - signalLevel;
-                float[] canvasCoordinates = mapToCanvasCoordinates(wifiPoint.getX(), wifiPoint.getY());
+                float[] canvasCoordinates = mapToCanvasCoordinates(signalFingerPrint.getPosition().getX(), signalFingerPrint.getPosition().getY());
                 mDrawPaint.setARGB(200, 0, 255, 0);
                 canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], mPixelsPerMeter * 2, mDrawPaint);
 //                canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], (float) (Math.sqrt(distance) * mPixelsPerMeter), mDrawPaint);
-                mDrawPaint.setARGB(255, 0, 0, 0);
-/*                canvas.drawText(String.valueOf(distance),
-                        wifiPoint.getX(), wifiPoint.getY(), mDrawPaint)*/
             }
         }
     }
@@ -171,6 +188,7 @@ public class MapperView extends View {
     }
 
     private void init() {
+        mWifiPoints = new HashSet<>();
         mGestureDetector = new GestureDetectorCompat(getContext(), new GestureDetectorListener());
         mScaleGestureDetector = new android.view.ScaleGestureDetector(getContext(), new ScaleGestureDetectorListener());
         mCameraMatrix = new Matrix();
@@ -184,12 +202,12 @@ public class MapperView extends View {
         invalidate();
     }
 
-    private void createMapPoint(float x, float y) {
-        WifiPoint wifiPoint = new WifiPoint(x, y);
-        mWifiPoints.add(wifiPoint);
+    private void createFingerPrintPoint(float x, float y) {
+        SignalFingerPrint signalFingerPrint = new SignalFingerPrint(x, y);
+        mSignalFingerPrints.add(signalFingerPrint);
         invalidate();
         if (mWifiMapPointListener != null) {
-            mWifiMapPointListener.onMapWifi(wifiPoint);
+            mWifiMapPointListener.onMapWifi(signalFingerPrint);
         }
     }
 
@@ -207,7 +225,7 @@ public class MapperView extends View {
 
     public interface WifiMapPointListener {
 
-        void onMapWifi(WifiPoint wifiPoint);
+        void onMapWifi(SignalFingerPrint signalFingerPrint);
     }
 
     private class GestureDetectorListener extends GestureDetector.SimpleOnGestureListener {
@@ -222,7 +240,7 @@ public class MapperView extends View {
                 inverseMatrix.mapPoints(points);
 
                 float[] worldCoordinates = mapToWorldCoordinates(points);
-                createMapPoint(worldCoordinates[0], worldCoordinates[1]);
+                createFingerPrintPoint(worldCoordinates[0], worldCoordinates[1]);
                 return true;
             }
             return super.onSingleTapUp(e);

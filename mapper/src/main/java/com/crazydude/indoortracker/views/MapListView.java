@@ -34,13 +34,13 @@ public class MapListView extends TextView {
         init();
     }
 
+    public void setData(MapFileModel data) {
+        setText(String.format(getContext().getString(R.string.map_list_data_format), data.getMapName(), data.getSignalFingerPrints().size()));
+    }
+
     private void init() {
 //        inflate(getContext(), R.layout.view_map_list_item, null);
         setPadding(0, 24, 0, 24);
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-    }
-
-    public void setData(MapFileModel data) {
-        setText(String.format(getContext().getString(R.string.map_list_data_format), data.getMapName(), data.getWifiPoints().size()));
     }
 }
