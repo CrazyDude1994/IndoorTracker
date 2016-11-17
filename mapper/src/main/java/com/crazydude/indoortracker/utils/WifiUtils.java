@@ -73,8 +73,8 @@ public class WifiUtils {
                 String data = FileUtils.readFile(file);
                 MapFileModel fileModel = gson.fromJson(data, MapFileModel.class);
 
-                result.add(new MapFileModel(fileModel.getSignalFingerPrints(), file.getName(), fileModel.getRoomWidth(),
-                        fileModel.getRoomHeight()));
+                result.add(new MapFileModel(fileModel.getSignalFingerPrints(), file.getName(),
+                        fileModel.getRoomWidth(), fileModel.getRoomHeight()));
             } catch (IOException e) {
                 continue;
             }

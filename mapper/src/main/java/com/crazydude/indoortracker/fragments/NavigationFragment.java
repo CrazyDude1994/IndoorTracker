@@ -31,7 +31,6 @@ import java.util.Set;
 public class NavigationFragment extends Fragment {
 
     private MapperView mMapperView;
-    private MapFileModel mData;
     private Set<SignalFingerPrint> mSignalFingerPrints;
     private int mMapWidth;
     private int mMapHeight;
@@ -66,7 +65,6 @@ public class NavigationFragment extends Fragment {
         mMapperView = (MapperView) view.findViewById(R.id.mapper_view);
 
         initMap();
-        scanPoint();
 
         return view;
     }
@@ -105,7 +103,7 @@ public class NavigationFragment extends Fragment {
 
     private void getUserPosition() {
         List<ScanResult> scanResults = mWifiManager.getScanResults();
-        mPositionDetector = new RSSIPositionDetector(scanResults);
+        mPositionDetector = new RSSIPositionDetector(scanResults, mSignalFingerPrints);
         Position position = mPositionDetector.detectPosition();
         mMapperView.setUserPosition(position);
     }

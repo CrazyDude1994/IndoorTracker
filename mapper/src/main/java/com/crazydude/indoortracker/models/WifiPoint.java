@@ -48,6 +48,20 @@ public class WifiPoint {
 
     @Override
     public boolean equals(Object o) {
-        return (o instanceof WifiPoint) && ((WifiPoint) o).getBSSID().equals(BSSID);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WifiPoint wifiPoint = (WifiPoint) o;
+
+        if (BSSID != null ? !BSSID.equals(wifiPoint.BSSID) : wifiPoint.BSSID != null) return false;
+        return position != null ? position.equals(wifiPoint.position) : wifiPoint.position == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = BSSID != null ? BSSID.hashCode() : 0;
+        result = 31 * result + (position != null ? position.hashCode() : 0);
+        return result;
     }
 }
