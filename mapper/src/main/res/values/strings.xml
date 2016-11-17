@@ -22,4 +22,5 @@
     <string name="choose_map">Choose map</string>
     <string name="mapping_mode">Mapping mode</string>
     <string name="switch_to_view_mode">Switch to view mode</string>
+    <string name="navigation">Navigation</string>
 </resources>

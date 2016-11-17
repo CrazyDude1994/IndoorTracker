@@ -2,9 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/menu_navigation_navigation"
+        android:icon="@drawable/ic_navigation"
+        android:title="@string/navigation"/>
+    <item
         android:id="@+id/menu_navigation_mapping"
         android:icon="@drawable/ic_mapping"
         android:title="@string/mapping"/>
+
     <item
         android:id="@+id/menu_navigation_load_map"
         android:icon="@drawable/ic_load_map"

@@ -14,21 +14,18 @@ import android.view.View;
 import com.crazydude.indoortracker.R;
 import com.crazydude.indoortracker.adapters.MapListAdapter;
 import com.crazydude.indoortracker.fragments.MappingFragment;
+import com.crazydude.indoortracker.fragments.NavigationFragment;
 import com.crazydude.indoortracker.models.MapFileModel;
 import com.crazydude.indoortracker.utils.WifiUtils;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, MapListAdapter.MapListAdapterClickListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private NavigationView mNavigationView;
     private DrawerLayout mDrawerLayout;
     private AlertDialog mMapChooseDialog;
 
-    @Override
-    public void onClick(MapFileModel fileModel) {
-        navigationMapLoadClick(fileModel);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,10 +47,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.menu_navigation_load_map:
                 navigationMapLoadClick();
                 break;
+            case R.id.menu_navigation_navigation:
+                navigationNavigateClick();
+                break;
         }
 
         mDrawerLayout.closeDrawers(); // close navigation drawer
         return true;
+    }
+
+    private void navigationNavigateClick() {
+        showMapChooseDialog(this::navigationNavigateLoad);
+    }
+
+    private void navigationNavigateLoad(MapFileModel fileModel) {
+        if (mMapChooseDialog != null) {
+            mMapChooseDialog.dismiss();
+        }
+        switchMainContainer(NavigationFragment.newInstance(fileModel));
     }
 
     private void navigationMapLoadClick(MapFileModel fileModel) {
@@ -68,17 +79,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void navigationMapLoadClick() {
-        showMapChooseDialog();
+        showMapChooseDialog(this::navigationMapLoadClick);
     }
 
-    private void showMapChooseDialog() {
+    private void showMapChooseDialog(MapListAdapter.MapListAdapterClickListener listener) {
         List<MapFileModel> mapList = WifiUtils.loadMapList(this);
 
         View inputDataView = View.inflate(this, R.layout.dialog_map_list, null);
         RecyclerView recyclerView = (RecyclerView) inputDataView.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         MapListAdapter mapListAdapter = new MapListAdapter(mapList);
-        mapListAdapter.setMapListAdapterClickListener(this);
+        mapListAdapter.setMapListAdapterClickListener(listener);
         recyclerView.setAdapter(mapListAdapter);
 
         mMapChooseDialog = new AlertDialog.Builder(this)

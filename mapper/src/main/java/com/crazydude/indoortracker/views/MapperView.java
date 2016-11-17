@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import com.crazydude.indoortracker.models.Position;
 import com.crazydude.indoortracker.models.WifiPoint;
 
 import java.util.HashSet;
@@ -36,6 +37,7 @@ public class MapperView extends View {
     private float mPixelsPerMeter;
     private int mFullSize;
     private Set<WifiPoint> mWifiPoints;
+    private Position mUserPosition;
 
     public enum Mode {
         VIEW, MAP
@@ -93,6 +95,11 @@ public class MapperView extends View {
         update();
     }
 
+    public void setUserPosition(Position userPosition) {
+        mUserPosition = userPosition;
+        update();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mGestureDetector.onTouchEvent(event) | mScaleGestureDetector.onTouchEvent(event)) {
@@ -115,6 +122,15 @@ public class MapperView extends View {
         drawWalls(canvas);
         drawFingerPrintPoints(canvas);
         drawWifiPoints(canvas);
+        drawUserPosition(canvas);
+    }
+
+    private void drawUserPosition(Canvas canvas) {
+        if (mUserPosition != null) {
+            float[] canvasCoordinates = mapToCanvasCoordinates(mUserPosition.getX(), mUserPosition.getY());
+            mDrawPaint.setARGB(255, 255, 0, 0);
+            canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], mPixelsPerMeter / 4, mDrawPaint);
+        }
     }
 
     private void drawWifiPoints(Canvas canvas) {
