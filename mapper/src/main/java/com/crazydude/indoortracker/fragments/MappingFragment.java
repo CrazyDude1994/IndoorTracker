@@ -31,6 +31,7 @@ import com.crazydude.indoortracker.views.MapperView;
 import com.crazydude.indoortracker.views.SignalFingerPrint;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +52,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
     private Snackbar mModeSnackbar;
     private MenuItem mMappingModeItem;
     private int mCurrentScanNumber = 0;
+    private Set<String> mSelectedBSSIDS;
     private WifiPointDetectorAlgorithm mWifiPointDetectorAlgorithm;
 
     public static MappingFragment newInstance() {
@@ -65,6 +67,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
 
     public void setData(MapFileModel data) {
         mSignalFingerPrints = data.getSignalFingerPrints();
+        mSelectedBSSIDS = data.getFilteredBSSIDS();
         mMapWidth = data.getRoomWidth();
         mMapHeight = data.getRoomHeight();
     }
@@ -133,7 +136,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
 
     private void saveData(String mapName) {
         try {
-            WifiUtils.saveDataToFile(getContext(), mapName, mSignalFingerPrints, mMapWidth, mMapHeight);
+            WifiUtils.saveDataToFile(getContext(), mapName, mSignalFingerPrints, mSelectedBSSIDS, mMapWidth, mMapHeight);
             Toast.makeText(getContext(), R.string.map_saved, Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             Toast.makeText(getContext(), String.format(getString(R.string.failed_to_save_map), e.getMessage()), Toast.LENGTH_LONG).show();
@@ -151,19 +154,56 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
             @Override
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> scanResults = mWifiManager.getScanResults();
-                mCurrentMappingPoint.addScanResults(scanResults);
-                mMapperView.update();
-                alertDialog.dismiss();
-                context.unregisterReceiver(this);
-                if (mCurrentScanNumber < SCAN_TIMES) {
-                    mCurrentScanNumber++;
-                    scanPoint();
+                if (mSelectedBSSIDS == null) {
+                    String[] wifis = new String[scanResults.size()];
+                    boolean[] selectedWifis = new boolean[scanResults.size()];
+                    for (int i = 0; i < scanResults.size(); i++) {
+                        wifis[i] = String.format("%s (%s)", scanResults.get(i).SSID, scanResults.get(i).BSSID);
+                    }
+                    AlertDialog dialog = new AlertDialog.Builder(getContext())
+                            .setCancelable(true)
+                            .setTitle(R.string.select_wifis)
+                            .setMultiChoiceItems(wifis, selectedWifis,
+                                    (dialogInterface, i, b) -> selectedWifis[i] = b)
+                            .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                                mSelectedBSSIDS = new HashSet<>();
+                                for (int i1 = 0; i1 < selectedWifis.length; i1++) {
+                                    if (selectedWifis[i1]) {
+                                        mSelectedBSSIDS.add(scanResults.get(i1).BSSID);
+                                    }
+                                }
+                                addScanResults(scanResults);
+                                alertDialog.dismiss();
+                                context.unregisterReceiver(this);
+                                mCurrentScanNumber++;
+                                scanPoint();
+                            }).setOnCancelListener(dialogInterface -> alertDialog.dismiss())
+                            .show();
+                } else {
+                    addScanResults(scanResults);
+                    alertDialog.dismiss();
+                    context.unregisterReceiver(this);
+                    if (mCurrentScanNumber < SCAN_TIMES) {
+                        mCurrentScanNumber++;
+                        scanPoint();
+                    }
                 }
             }
         };
 
         IntentFilter intentFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         getContext().registerReceiver(receiver, intentFilter);
+    }
+
+    private void addScanResults(List<ScanResult> scanResults) {
+        List<ScanResult> results = new ArrayList<>();
+        for (ScanResult scanResult : scanResults) {
+            if (mSelectedBSSIDS.contains(scanResult.BSSID)) {
+                results.add(scanResult);
+            }
+        }
+        mCurrentMappingPoint.addScanResults(results);
+        mMapperView.update();
     }
 
     private void calculateWifiPointPositions() {

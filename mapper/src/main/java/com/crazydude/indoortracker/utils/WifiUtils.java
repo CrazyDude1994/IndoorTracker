@@ -46,12 +46,13 @@ public class WifiUtils {
         }
     }
 
-    public static void saveDataToFile(Context context, String mapName, Set<SignalFingerPrint> data, int width,
-                                      int height) throws IOException {
+    public static void saveDataToFile(Context context, String mapName, Set<SignalFingerPrint> data,
+                                      Set<String> filteredBSSIDS,
+                                      int width, int height) throws IOException {
         Gson gson = buildGson();
 
         File file = new File(context.getFilesDir(), mapName + ".json");
-        MapFileModel fileModel = new MapFileModel(data, mapName, width, height);
+        MapFileModel fileModel = new MapFileModel(data, filteredBSSIDS, mapName, width, height);
         String json = gson.toJson(fileModel);
         FileOutputStream outputStream = new FileOutputStream(file);
         byte[] bytes = json.getBytes();
@@ -73,7 +74,7 @@ public class WifiUtils {
                 String data = FileUtils.readFile(file);
                 MapFileModel fileModel = gson.fromJson(data, MapFileModel.class);
 
-                result.add(new MapFileModel(fileModel.getSignalFingerPrints(), file.getName(),
+                result.add(new MapFileModel(fileModel.getSignalFingerPrints(), fileModel.getFilteredBSSIDS(), file.getName(),
                         fileModel.getRoomWidth(), fileModel.getRoomHeight()));
             } catch (IOException e) {
                 continue;

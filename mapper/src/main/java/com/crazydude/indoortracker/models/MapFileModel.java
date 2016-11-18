@@ -13,6 +13,8 @@ public class MapFileModel {
 
     @SerializedName("scan_results")
     private Set<SignalFingerPrint> mSignalFingerPrints;
+    @SerializedName("filtered_bssid")
+    private Set<String> mFilteredBSSIDS;
     @SerializedName("map_name")
     private String mMapName;
     @SerializedName("width")
@@ -20,8 +22,9 @@ public class MapFileModel {
     @SerializedName("height")
     private int mRoomHeight;
 
-    public MapFileModel(Set<SignalFingerPrint> signalFingerPrints, String mapName, int roomWidth, int roomHeight) {
+    public MapFileModel(Set<SignalFingerPrint> signalFingerPrints, Set<String> filteredBSSIDS, String mapName, int roomWidth, int roomHeight) {
         mSignalFingerPrints = signalFingerPrints;
+        mFilteredBSSIDS = filteredBSSIDS;
         mMapName = mapName;
         mRoomWidth = roomWidth;
         mRoomHeight = roomHeight;
@@ -57,5 +60,13 @@ public class MapFileModel {
 
     public void setMapName(String mapName) {
         mMapName = mapName;
+    }
+
+    public Set<String> getFilteredBSSIDS() {
+        return mFilteredBSSIDS;
+    }
+
+    public void setFilteredBSSIDS(Set<String> filteredBSSIDS) {
+        mFilteredBSSIDS = filteredBSSIDS;
     }
 }
