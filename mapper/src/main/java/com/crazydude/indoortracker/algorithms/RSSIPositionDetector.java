@@ -1,12 +1,12 @@
 package com.crazydude.indoortracker.algorithms;
 
 import android.net.wifi.ScanResult;
-import android.util.Log;
 
 import com.crazydude.indoortracker.models.Position;
 import com.crazydude.indoortracker.models.WifiPoint;
 import com.crazydude.indoortracker.utils.WifiUtils;
 import com.crazydude.indoortracker.views.SignalFingerPrint;
+import com.orhanobut.logger.Logger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +39,8 @@ public class RSSIPositionDetector implements PositionDetector {
         Position position = null;
         Float distance = null;
 
+        HashMap<SignalFingerPrint, Float> resultMap = new HashMap<>();
+
         for (SignalFingerPrint fingerPrint : mFingerPrints) {
             float tempDistance = 0f;
             for (ScanResult scanResult : mScanResults) {
@@ -54,20 +56,27 @@ public class RSSIPositionDetector implements PositionDetector {
 
             tempDistance = (float) Math.sqrt(tempDistance);
 
+            resultMap.put(fingerPrint, tempDistance);
 
             if (distance != null) {
                 if (tempDistance < distance) {
                     distance = tempDistance;
                     position = fingerPrint.getPosition();
-                    Log.d("RSSI", String.format("%f < %f", tempDistance, distance));
                 }
             } else {
-                Log.d("RSSI", String.format("Distaince is null. Choosing: %f,%f: %f", fingerPrint.getPosition().getX(),
-                        fingerPrint.getPosition().getY(), tempDistance));
                 position = fingerPrint.getPosition();
                 distance = tempDistance;
             }
         }
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (SignalFingerPrint fingerPrint : resultMap.keySet()) {
+            stringBuilder.append(String.format("%f, %f: %f\r\n", fingerPrint.getPosition().getX(),
+                    fingerPrint.getPosition().getY(), resultMap.get(fingerPrint)));
+        }
+
+        Logger.d(stringBuilder.toString());
 
         return position;
     }

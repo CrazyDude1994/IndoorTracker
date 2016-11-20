@@ -17,6 +17,7 @@ import com.crazydude.indoortracker.fragments.MappingFragment;
 import com.crazydude.indoortracker.fragments.NavigationFragment;
 import com.crazydude.indoortracker.models.MapFileModel;
 import com.crazydude.indoortracker.utils.WifiUtils;
+import com.orhanobut.logger.Logger;
 
 import java.util.List;
 
@@ -75,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void init() {
+        Logger.init()
+                .hideThreadInfo();
         mNavigationView.setNavigationItemSelectedListener(this);
     }
 

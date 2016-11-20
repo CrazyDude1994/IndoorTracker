@@ -8,6 +8,7 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.orhanobut.logger.Logger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -53,6 +54,8 @@ public class WifiUtils {
         File file = new File(context.getFilesDir(), mapName + ".json");
         MapFileModel fileModel = new MapFileModel(data, mapName, width, height);
         String json = gson.toJson(fileModel);
+        Logger.d("Saved data");
+        Logger.json(json);
         FileOutputStream outputStream = new FileOutputStream(file);
         byte[] bytes = json.getBytes();
         outputStream.write(bytes);
@@ -71,12 +74,13 @@ public class WifiUtils {
                 ) {
             try {
                 String data = FileUtils.readFile(file);
+                Logger.d("Loaded data");
+                Logger.json(data);
                 MapFileModel fileModel = gson.fromJson(data, MapFileModel.class);
 
                 result.add(new MapFileModel(fileModel.getSignalFingerPrints(), file.getName(),
                         fileModel.getRoomWidth(), fileModel.getRoomHeight()));
-            } catch (IOException e) {
-                continue;
+            } catch (IOException ignored) {
             }
         }
 
