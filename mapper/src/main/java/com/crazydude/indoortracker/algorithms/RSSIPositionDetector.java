@@ -44,13 +44,17 @@ public class RSSIPositionDetector implements PositionDetector {
         for (SignalFingerPrint fingerPrint : mFingerPrints) {
             float tempDistance = 0f;
             for (ScanResult scanResult : mScanResults) {
+                if (scanResult.level < -80) continue;
                 WifiPoint wifiPoint = new WifiPoint(scanResult.SSID, scanResult.BSSID, fingerPrint.getPosition());
                 Integer avrg = mRSSIData.get(wifiPoint);
+                int scanLevel = WifiUtils.calculateSignalLevel(scanResult.level, 100);
+
                 if (avrg != null) {
                     int level = WifiUtils.calculateSignalLevel(avrg, 100);
-                    int scanLevel = WifiUtils.calculateSignalLevel(scanResult.level, 100);
 
-                    tempDistance = tempDistance + (float) Math.pow((level - scanLevel), 2);
+                    tempDistance = tempDistance + (float) Math.pow(level - scanLevel, 2);
+                } else {
+                    tempDistance = tempDistance + (float) Math.pow(0 - scanLevel, 2);
                 }
             }
 

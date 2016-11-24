@@ -160,7 +160,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
                     for (int i = 0; i < scanResults.size(); i++) {
                         wifis[i] = String.format("%s (%s)", scanResults.get(i).SSID, scanResults.get(i).BSSID);
                     }
-                    AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    new AlertDialog.Builder(getContext())
                             .setCancelable(true)
                             .setTitle(R.string.select_wifis)
                             .setMultiChoiceItems(wifis, selectedWifis,
