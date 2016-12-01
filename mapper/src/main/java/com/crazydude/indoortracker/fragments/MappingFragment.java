@@ -226,7 +226,7 @@ public class MappingFragment extends Fragment implements MapperView.WifiMapPoint
         } else {
             createNewMap(mMapWidth, mMapWidth);
             mMapperView.setSignalFingerPrints(mSignalFingerPrints);
-//            calculateWifiPointPositions();
+            calculateWifiPointPositions();
         }
     }
 

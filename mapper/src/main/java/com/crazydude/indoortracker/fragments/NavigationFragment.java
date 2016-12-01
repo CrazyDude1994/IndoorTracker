@@ -16,8 +16,10 @@ import android.view.ViewGroup;
 import com.crazydude.indoortracker.R;
 import com.crazydude.indoortracker.algorithms.PositionDetector;
 import com.crazydude.indoortracker.algorithms.RSSIPositionDetector;
+import com.crazydude.indoortracker.algorithms.SignalLevelPointDetector;
 import com.crazydude.indoortracker.models.MapFileModel;
 import com.crazydude.indoortracker.models.Position;
+import com.crazydude.indoortracker.models.WifiPoint;
 import com.crazydude.indoortracker.views.MapperView;
 import com.crazydude.indoortracker.views.SignalFingerPrint;
 
@@ -84,6 +86,9 @@ public class NavigationFragment extends Fragment {
     private void initMap() {
         mMapperView.createMap(mMapWidth, mMapHeight);
         mMapperView.setSignalFingerPrints(mSignalFingerPrints);
+        SignalLevelPointDetector pointDetector = new SignalLevelPointDetector(mSignalFingerPrints);
+        Set<WifiPoint> wifiPoints = pointDetector.detectWifiPointPosition();
+        mMapperView.setWifiPoints(wifiPoints);
     }
 
     private void scanPoint() {

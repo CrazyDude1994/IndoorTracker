@@ -1,9 +1,11 @@
 package com.crazydude.indoortracker.views;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -11,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import com.crazydude.indoortracker.R;
 import com.crazydude.indoortracker.models.Position;
 import com.crazydude.indoortracker.models.WifiPoint;
 
@@ -38,6 +41,7 @@ public class MapperView extends View {
     private int mFullSize;
     private Set<WifiPoint> mWifiPoints;
     private Position mUserPosition;
+    private Bitmap mWifiBitmap;
 
     public enum Mode {
         VIEW, MAP
@@ -136,8 +140,7 @@ public class MapperView extends View {
     private void drawWifiPoints(Canvas canvas) {
         for (WifiPoint wifiPoint : mWifiPoints) {
             float[] canvasCoordinates = mapToCanvasCoordinates(wifiPoint.getPosition().getX(), wifiPoint.getPosition().getY());
-            mDrawPaint.setARGB(255, 0, 0, 255);
-            canvas.drawCircle(canvasCoordinates[0], canvasCoordinates[1], mPixelsPerMeter / 4, mDrawPaint);
+            canvas.drawBitmap(mWifiBitmap, canvasCoordinates[0], canvasCoordinates[1], mDrawPaint);
             mDrawPaint.setARGB(255, 0, 0, 0);
             canvas.drawText(String.valueOf(wifiPoint.getPointName()), canvasCoordinates[0], canvasCoordinates[1], mDrawPaint);
         }
@@ -211,6 +214,11 @@ public class MapperView extends View {
         mDrawPaint = new Paint();
         mDrawPaint.setARGB(255, 255, 0, 0);
         mDrawPaint.setStrokeWidth(25);
+        Drawable drawable = getResources().getDrawable(R.drawable.ic_wifi, null);
+        mWifiBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(mWifiBitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
     }
 
     private void scaleImage(float scaleFactor, float focusX, float focusY) {
