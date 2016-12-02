@@ -27,10 +27,10 @@ public class SignalLevelPointDetector implements WifiPointDetectorAlgorithm {
     @Override
     public Set<WifiPoint> detectWifiPointPosition() {
         for (SignalFingerPrint fingerPrint : mFingerPrints) {
-            fingerPrint.
+//            fingerPrint.
         }
 
-        return wifiPoints;
+        return null;
     }
 
     private void mapFingerPrints() {

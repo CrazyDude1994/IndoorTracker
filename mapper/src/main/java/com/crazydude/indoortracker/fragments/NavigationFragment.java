@@ -17,14 +17,19 @@ import com.crazydude.indoortracker.R;
 import com.crazydude.indoortracker.algorithms.PositionDetector;
 import com.crazydude.indoortracker.algorithms.RSSIPositionDetector;
 import com.crazydude.indoortracker.algorithms.SignalLevelPointDetector;
+import com.crazydude.indoortracker.api.ApiFactory;
+import com.crazydude.indoortracker.api.ApiService;
 import com.crazydude.indoortracker.models.MapFileModel;
 import com.crazydude.indoortracker.models.Position;
-import com.crazydude.indoortracker.models.WifiPoint;
 import com.crazydude.indoortracker.views.MapperView;
 import com.crazydude.indoortracker.views.SignalFingerPrint;
 
 import java.util.List;
 import java.util.Set;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by Crazy on 15.11.2016.
@@ -39,6 +44,7 @@ public class NavigationFragment extends Fragment {
     private WifiManager mWifiManager;
     private BroadcastReceiver mReceiver;
     private PositionDetector mPositionDetector;
+    private ApiService mApiService;
 
     public static NavigationFragment newInstance(MapFileModel fileModel) {
         NavigationFragment navigationFragment = new NavigationFragment();
@@ -57,6 +63,7 @@ public class NavigationFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mWifiManager = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        mApiService = ApiFactory.create();
     }
 
     @Nullable
@@ -87,8 +94,8 @@ public class NavigationFragment extends Fragment {
         mMapperView.createMap(mMapWidth, mMapHeight);
         mMapperView.setSignalFingerPrints(mSignalFingerPrints);
         SignalLevelPointDetector pointDetector = new SignalLevelPointDetector(mSignalFingerPrints);
-        Set<WifiPoint> wifiPoints = pointDetector.detectWifiPointPosition();
-        mMapperView.setWifiPoints(wifiPoints);
+//        Set<WifiPoint> wifiPoints = pointDetector.detectWifiPointPosition();
+//        mMapperView.setWifiPoints(wifiPoints);
     }
 
     private void scanPoint() {
@@ -110,6 +117,17 @@ public class NavigationFragment extends Fragment {
         List<ScanResult> scanResults = mWifiManager.getScanResults();
         mPositionDetector = new RSSIPositionDetector(scanResults, mSignalFingerPrints);
         Position position = mPositionDetector.detectPosition();
+        mApiService.updatePosition("test", position.getX(), position.getY(), 1).enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+
+            }
+        });
         mMapperView.setUserPosition(position);
     }
 
